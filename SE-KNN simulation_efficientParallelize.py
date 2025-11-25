@@ -186,27 +186,55 @@ df_results.to_csv('./Frank2019_SimulationRes_ratio01to05_'+str(cycle_no)+'.csv',
 
 res_9ratios = pd.read_csv('./Frank2019_SimulationRes_0.csv')
 res_3ratios = pd.read_csv('./Frank2019_SimulationRes_ratio65to75_0.csv')
+res_3ratios_2 = pd.read_csv('./Frank2019_SimulationRes_ratio01to05_0.csv')
 
-df_results = pd.concat([res_9ratios, res_3ratios])
+df_results = pd.concat([res_9ratios[res_9ratios['Ratio'].isin([0.0,0.2,0.4,0.6,0.8,0.9,1.0])], res_3ratios[res_3ratios['Ratio'].isin([0.7])], res_3ratios_2])
 #df_sorted = result.sort_values(by=[','Best_K', 'MAE'], ascending=[True, True])
 
-#filtered_df = df_results[df_results['Ratio_Rounded'].isin(target_ratios)].copy()
+#filtered_df = df_results[df_results['Ratio'].isin(np.arange(0,1.1,0.1))].copy()
+
 # --- 7. VISUALIZATION ---
 
 # Create the boxplot
-plt.figure(figsize=(12, 8))
+plt.figure(figsize=(9, 6))
 sns.boxplot(x='Ratio', y='MAE', data=df_results, palette="Set3")
-
-plt.title(f'Distribution of Best MAE per Ratio ({n_reps} Replications)')
-plt.xlabel('Spatial Ratio (Lambda)')
+plt.title(f'Distribution of Best MAE per Spatial Ratio ({n_reps} Replications with K = 2 to 19)')
+plt.xlabel(r'Spatial Ratio: $\lambda$')
 plt.ylabel('Mean Absolute Error (MAE)')
 plt.grid(True, alpha=0.3)
+
+plt.savefig("Distribution of Best MAE per spatial ratio_9to6_300dpi.png", dpi=300, bbox_inches='tight')
 plt.show()
 
+# Create the boxplot (2)
+plt.figure(figsize=(9, 6))
+sns.boxplot(x='Best_K', y='MAE', data=df_results[df_results["Ratio"]==0.7], palette="Set3")
+plt.title(r'MAE vs. K at $\lambda$=0.7')
+plt.xlabel('The number of neighbors, K')
+plt.ylabel('MAE by Validation set')
+plt.grid(True, alpha=0.3)
+plt.savefig("MAEvsK.png", dpi=300, bbox_inches='tight')
+plt.show()
+
+# Create the boxplot (3)
+plt.figure(figsize=(9, 6))
+sns.boxplot(x='Ratio', y='MAE', data=df_results[df_results["Best_K"]==6], palette="Set3")
+plt.title(r'MAE vs. $\lambda$ at K=6')
+plt.xlabel(r'Spatial ratio: $\lambda$')
+plt.ylabel('MAE by Validation set')
+plt.grid(True, alpha=0.3)
+plt.savefig("MAEvsLabmda.png", dpi=300, bbox_inches='tight')
+plt.show()
+
+df_results[(df_results["Best_K"]==6) & (df_results["Ratio"]==0)]
+
 # Optional: Print summary table
-summary = df_results.groupby('Ratio')['MAE'].agg(['mean', 'std', 'min', 'max']).sort_values('mean')
+summary_MAE = round(df_results.groupby('Ratio')['MAE'].agg(['mean', 'std', 'min', 'max']).sort_values('Ratio'),0)
+summary_RMSE = round(df_results.groupby('Ratio')['RMSE'].agg(['mean', 'std', 'min', 'max']).sort_values('Ratio'),0)
+summary_R2 = round(df_results.groupby('Ratio')['R2'].agg(['mean', 'std', 'min', 'max']).sort_values('Ratio'),3)
+summary_K = df_results.groupby('Ratio')['Best_K'].agg(['median', 'std', 'min', 'max']).sort_values('Ratio')
 print("\nSummary Statistics by Ratio:")
-print(summary)
+print(summary_MAE)
 #%%
 #df_results.to_csv('./Frank2019_SimulationRes_2.csv', index=True)
 
